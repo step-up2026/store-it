@@ -23,14 +23,22 @@ export default async function UsageHistoryPage() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold text-neutral-900">Usage Log</h1>
-        {profile?.role === "storekeeper" && (
+        <div className="flex gap-2">
           <Link
-            href="/usage/new"
-            className="px-4 py-2 rounded-md text-sm font-medium bg-neutral-900 text-white hover:bg-neutral-800"
+            href="/usage/report"
+            className="px-4 py-2 rounded-md text-sm font-medium border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
           >
-            Record Usage
+            Report
           </Link>
-        )}
+          {profile?.role === "storekeeper" && (
+            <Link
+              href="/usage/new"
+              className="px-4 py-2 rounded-md text-sm font-medium bg-neutral-900 text-white hover:bg-neutral-800"
+            >
+              Record Usage
+            </Link>
+          )}
+        </div>
       </div>
       <UsageHistoryClient
         initialLogs={logs ?? []}

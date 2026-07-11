@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type { Product } from "@/lib/types";
 import { computeStockStatus } from "@/lib/stock";
 import { StockBadge } from "@/components/StockBadge";
@@ -94,6 +95,12 @@ export function ProductsClient({
             >
               {isPending ? "Generating…" : "Generate Reorder List"}
             </button>
+            <Link
+              href="/products/import"
+              className="px-4 py-2 rounded-md text-sm font-medium border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+            >
+              Import
+            </Link>
             <button
               onClick={openAdd}
               className="px-4 py-2 rounded-md text-sm font-medium bg-neutral-900 text-white hover:bg-neutral-800"

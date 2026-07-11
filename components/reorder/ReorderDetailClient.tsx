@@ -95,7 +95,7 @@ export function ReorderDetailClient({
     <div>
       <Link
         href="/reorder-lists"
-        className="text-sm text-neutral-500 hover:text-neutral-800"
+        className="no-print text-sm text-neutral-500 hover:text-neutral-800"
       >
         ← All reorder lists
       </Link>
@@ -112,7 +112,7 @@ export function ReorderDetailClient({
             <button
               onClick={handleMarkOrdered}
               disabled={busy}
-              className="px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+              className="no-print px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
             >
               {busy ? "Saving…" : "Mark as Ordered"}
             </button>
@@ -121,7 +121,7 @@ export function ReorderDetailClient({
             <button
               onClick={handleMarkDelivered}
               disabled={busy}
-              className="px-4 py-2 rounded-md text-sm font-medium bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+              className="no-print px-4 py-2 rounded-md text-sm font-medium bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
             >
               {busy ? "Saving…" : "Mark as Delivered"}
             </button>
@@ -131,6 +131,12 @@ export function ReorderDetailClient({
               Delivered {new Date(list.delivered_at!).toLocaleString()}
             </span>
           )}
+          <button
+            onClick={() => window.print()}
+            className="no-print px-4 py-2 rounded-md text-sm font-medium border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+          >
+            Print / PDF
+          </button>
         </div>
       </div>
 

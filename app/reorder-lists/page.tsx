@@ -13,9 +13,17 @@ export default async function ReorderListsPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-semibold text-neutral-900 mb-6">
-        Reorder Lists
-      </h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-semibold text-neutral-900">
+          Reorder Lists
+        </h1>
+        <Link
+          href="/reorder-lists/deliveries"
+          className="px-4 py-2 rounded-md text-sm font-medium border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+        >
+          Delivery Summary
+        </Link>
+      </div>
 
       {error && (
         <div className="mb-4 rounded-md border border-red-300 bg-red-50 text-red-800 px-4 py-3 text-sm">

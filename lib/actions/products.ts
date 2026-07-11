@@ -96,6 +96,55 @@ export async function updateProduct(id: string, input: ProductInput) {
   return { data };
 }
 
+export type ImportProductInput = {
+  description: string;
+  unit: string;
+  min_stock_level: number;
+  current_qty: number;
+  supplier_name: string;
+};
+
+export async function bulkImportProducts(rows: ImportProductInput[]) {
+  if (rows.length === 0) return { error: "No rows to import" };
+
+  const supabase = await createClient();
+  const auth = await requireRole(supabase, ["storekeeper"]);
+  if ("error" in auth) return auth;
+
+  for (const row of rows) {
+    if (!row.description.trim()) return { error: "Every row needs a description" };
+    if (!row.unit.trim()) return { error: "Every row needs a unit" };
+  }
+
+  const { data: suppliers } = await supabase.from("suppliers").select("id, name");
+  const supplierByName = new Map(
+    (suppliers ?? []).map((s) => [s.name.trim().toLowerCase(), s.id]),
+  );
+
+  const toInsert = rows.map((row) => ({
+    description: row.description.trim(),
+    unit: row.unit.trim(),
+    min_stock_level: Number.isFinite(row.min_stock_level) ? row.min_stock_level : 0,
+    current_qty: Number.isFinite(row.current_qty) ? row.current_qty : 0,
+    supplier_id: supplierByName.get(row.supplier_name.trim().toLowerCase()) ?? null,
+  }));
+
+  const { data, error } = await supabase.from("products").insert(toInsert).select();
+
+  if (error) return { error: error.message };
+
+  await writeAuditLog(supabase, {
+    action: "products_bulk_imported",
+    entityType: "products",
+    entityId: null,
+    userId: auth.profile.id,
+    payload: { count: data.length, rows: data },
+  });
+
+  revalidatePath("/products");
+  return { data };
+}
+
 export async function deleteProduct(id: string) {
   const supabase = await createClient();
   const auth = await requireRole(supabase, ["storekeeper"]);
