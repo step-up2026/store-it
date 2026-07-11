@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { writeAuditLog } from "@/lib/audit";
+import { requireRole } from "@/lib/auth";
 
 export type TeamInput = { name: string; leader_name: string };
 export type WorkerInput = {
@@ -15,6 +16,9 @@ export async function createTeam(input: TeamInput) {
   if (!input.name.trim()) return { error: "Team name is required" };
 
   const supabase = await createClient();
+  const auth = await requireRole(supabase, ["storekeeper"]);
+  if ("error" in auth) return auth;
+
   const { data, error } = await supabase
     .from("teams")
     .insert({
@@ -30,6 +34,7 @@ export async function createTeam(input: TeamInput) {
     action: "team_created",
     entityType: "teams",
     entityId: data.id,
+    userId: auth.profile.id,
     payload: { after: data },
   });
 
@@ -41,6 +46,9 @@ export async function updateTeam(id: string, input: TeamInput) {
   if (!input.name.trim()) return { error: "Team name is required" };
 
   const supabase = await createClient();
+  const auth = await requireRole(supabase, ["storekeeper"]);
+  if ("error" in auth) return auth;
+
   const { data: before } = await supabase
     .from("teams")
     .select()
@@ -63,6 +71,7 @@ export async function updateTeam(id: string, input: TeamInput) {
     action: "team_updated",
     entityType: "teams",
     entityId: id,
+    userId: auth.profile.id,
     payload: { before, after: data },
   });
 
@@ -72,6 +81,9 @@ export async function updateTeam(id: string, input: TeamInput) {
 
 export async function deleteTeam(id: string) {
   const supabase = await createClient();
+  const auth = await requireRole(supabase, ["storekeeper"]);
+  if ("error" in auth) return auth;
+
   const { data: before } = await supabase
     .from("teams")
     .select()
@@ -85,6 +97,7 @@ export async function deleteTeam(id: string) {
     action: "team_deleted",
     entityType: "teams",
     entityId: id,
+    userId: auth.profile.id,
     payload: { before },
   });
 
@@ -96,6 +109,9 @@ export async function createWorker(input: WorkerInput) {
   if (!input.name.trim()) return { error: "Worker name is required" };
 
   const supabase = await createClient();
+  const auth = await requireRole(supabase, ["storekeeper"]);
+  if ("error" in auth) return auth;
+
   const { data, error } = await supabase
     .from("workers")
     .insert({
@@ -112,6 +128,7 @@ export async function createWorker(input: WorkerInput) {
     action: "worker_created",
     entityType: "workers",
     entityId: data.id,
+    userId: auth.profile.id,
     payload: { after: data },
   });
 
@@ -123,6 +140,9 @@ export async function updateWorker(id: string, input: WorkerInput) {
   if (!input.name.trim()) return { error: "Worker name is required" };
 
   const supabase = await createClient();
+  const auth = await requireRole(supabase, ["storekeeper"]);
+  if ("error" in auth) return auth;
+
   const { data: before } = await supabase
     .from("workers")
     .select()
@@ -146,6 +166,7 @@ export async function updateWorker(id: string, input: WorkerInput) {
     action: "worker_updated",
     entityType: "workers",
     entityId: id,
+    userId: auth.profile.id,
     payload: { before, after: data },
   });
 
@@ -155,6 +176,9 @@ export async function updateWorker(id: string, input: WorkerInput) {
 
 export async function deleteWorker(id: string) {
   const supabase = await createClient();
+  const auth = await requireRole(supabase, ["storekeeper"]);
+  if ("error" in auth) return auth;
+
   const { data: before } = await supabase
     .from("workers")
     .select()
@@ -168,6 +192,7 @@ export async function deleteWorker(id: string) {
     action: "worker_deleted",
     entityType: "workers",
     entityId: id,
+    userId: auth.profile.id,
     payload: { before },
   });
 

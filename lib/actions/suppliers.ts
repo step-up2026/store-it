@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { writeAuditLog } from "@/lib/audit";
+import { requireRole } from "@/lib/auth";
 
 export type SupplierInput = {
   name: string;
@@ -15,6 +16,9 @@ export async function createSupplier(input: SupplierInput) {
   if (!input.name.trim()) return { error: "Supplier name is required" };
 
   const supabase = await createClient();
+  const auth = await requireRole(supabase, ["storekeeper"]);
+  if ("error" in auth) return auth;
+
   const { data, error } = await supabase
     .from("suppliers")
     .insert({
@@ -32,6 +36,7 @@ export async function createSupplier(input: SupplierInput) {
     action: "supplier_created",
     entityType: "suppliers",
     entityId: data.id,
+    userId: auth.profile.id,
     payload: { after: data },
   });
 
@@ -44,6 +49,9 @@ export async function updateSupplier(id: string, input: SupplierInput) {
   if (!input.name.trim()) return { error: "Supplier name is required" };
 
   const supabase = await createClient();
+  const auth = await requireRole(supabase, ["storekeeper"]);
+  if ("error" in auth) return auth;
+
   const { data: before } = await supabase
     .from("suppliers")
     .select()
@@ -68,6 +76,7 @@ export async function updateSupplier(id: string, input: SupplierInput) {
     action: "supplier_updated",
     entityType: "suppliers",
     entityId: id,
+    userId: auth.profile.id,
     payload: { before, after: data },
   });
 
@@ -78,6 +87,9 @@ export async function updateSupplier(id: string, input: SupplierInput) {
 
 export async function deleteSupplier(id: string) {
   const supabase = await createClient();
+  const auth = await requireRole(supabase, ["storekeeper"]);
+  if ("error" in auth) return auth;
+
   const { data: before } = await supabase
     .from("suppliers")
     .select()
@@ -91,6 +103,7 @@ export async function deleteSupplier(id: string) {
     action: "supplier_deleted",
     entityType: "suppliers",
     entityId: id,
+    userId: auth.profile.id,
     payload: { before },
   });
 

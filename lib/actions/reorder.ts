@@ -3,10 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { writeAuditLog } from "@/lib/audit";
+import { actorName, requireRole } from "@/lib/auth";
 import { suggestedReorderQty } from "@/lib/stock";
 
-export async function generateReorderList(generatedBy: string) {
+export async function generateReorderList() {
   const supabase = await createClient();
+  const auth = await requireRole(supabase, ["storekeeper"]);
+  if ("error" in auth) return auth;
 
   const { data: products, error: productsErr } = await supabase
     .from("products")
@@ -27,7 +30,7 @@ export async function generateReorderList(generatedBy: string) {
     .from("reorder_lists")
     .insert({
       status: "draft",
-      generated_by: generatedBy.trim() || "Storekeeper (Demo)",
+      generated_by: actorName(auth.profile),
     })
     .select()
     .single();
@@ -57,6 +60,7 @@ export async function generateReorderList(generatedBy: string) {
     action: "reorder_generated",
     entityType: "reorder_lists",
     entityId: list.id,
+    userId: auth.profile.id,
     payload: { list, items },
   });
 
@@ -69,6 +73,9 @@ export async function updateReorderItemQty(itemId: string, qty: number) {
   if (qty < 0) return { error: "Quantity cannot be negative" };
 
   const supabase = await createClient();
+  const auth = await requireRole(supabase, ["purchasing_officer"]);
+  if ("error" in auth) return auth;
+
   const { data: item, error } = await supabase
     .from("reorder_list_items")
     .select("*, reorder_lists!inner(status)")
@@ -91,8 +98,10 @@ export async function updateReorderItemQty(itemId: string, qty: number) {
   return { data: true };
 }
 
-export async function markReorderOrdered(listId: string, orderedBy: string) {
+export async function markReorderOrdered(listId: string) {
   const supabase = await createClient();
+  const auth = await requireRole(supabase, ["purchasing_officer"]);
+  if ("error" in auth) return auth;
 
   const { data: list, error: listErr } = await supabase
     .from("reorder_lists")
@@ -111,7 +120,7 @@ export async function markReorderOrdered(listId: string, orderedBy: string) {
     .from("reorder_lists")
     .update({
       status: "ordered",
-      ordered_by: orderedBy.trim() || "Purchasing Officer (Demo)",
+      ordered_by: actorName(auth.profile),
       ordered_at: orderedAt,
     })
     .eq("id", listId)
@@ -129,6 +138,7 @@ export async function markReorderOrdered(listId: string, orderedBy: string) {
     action: "reorder_ordered",
     entityType: "reorder_lists",
     entityId: listId,
+    userId: auth.profile.id,
     payload: { before: list, after: updated },
   });
 
@@ -137,11 +147,10 @@ export async function markReorderOrdered(listId: string, orderedBy: string) {
   return { data: updated };
 }
 
-export async function markReorderDelivered(
-  listId: string,
-  deliveredBy: string,
-) {
+export async function markReorderDelivered(listId: string) {
   const supabase = await createClient();
+  const auth = await requireRole(supabase, ["storekeeper"]);
+  if ("error" in auth) return auth;
 
   const { data: list, error: listErr } = await supabase
     .from("reorder_lists")
@@ -191,7 +200,7 @@ export async function markReorderDelivered(
     .from("reorder_lists")
     .update({
       status: "delivered",
-      delivered_by: deliveredBy.trim() || "Storekeeper (Demo)",
+      delivered_by: actorName(auth.profile),
       delivered_at: deliveredAt,
     })
     .eq("id", listId)
@@ -209,6 +218,7 @@ export async function markReorderDelivered(
     action: "reorder_delivered",
     entityType: "reorder_lists",
     entityId: listId,
+    userId: auth.profile.id,
     payload: { before: list, after: updated, stockUpdates },
   });
 

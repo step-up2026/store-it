@@ -45,7 +45,7 @@ export function ProductForm({
       : await createProduct(input);
 
     setSaving(false);
-    if (res.error) {
+    if ("error" in res) {
       setError(res.error);
       return;
     }

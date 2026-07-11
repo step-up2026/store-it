@@ -1,10 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
+import { getSessionProfile } from "@/lib/auth";
 import { ProductsClient } from "@/components/products/ProductsClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProductsPage() {
   const supabase = await createClient();
+  const profile = await getSessionProfile(supabase);
 
   const [{ data: products, error: productsError }, { data: suppliers }] =
     await Promise.all([
@@ -20,6 +22,7 @@ export default async function ProductsPage() {
       initialProducts={products ?? []}
       suppliers={suppliers ?? []}
       loadError={productsError?.message ?? null}
+      canManage={profile?.role === "storekeeper"}
     />
   );
 }

@@ -3,12 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { writeAuditLog } from "@/lib/audit";
+import { actorName, requireRole } from "@/lib/auth";
 
 export type UsageInput = {
   product_id: string;
   worker_id: string;
   qty_taken: number;
-  recorded_by: string;
   notes: string;
 };
 
@@ -20,6 +20,8 @@ export async function recordUsage(input: UsageInput) {
   }
 
   const supabase = await createClient();
+  const auth = await requireRole(supabase, ["storekeeper"]);
+  if ("error" in auth) return auth;
 
   const { data: product, error: productErr } = await supabase
     .from("products")
@@ -50,7 +52,7 @@ export async function recordUsage(input: UsageInput) {
       product_id: input.product_id,
       worker_id: input.worker_id,
       qty_taken: input.qty_taken,
-      recorded_by: input.recorded_by.trim() || "Storekeeper (Demo)",
+      recorded_by: actorName(auth.profile),
       notes: input.notes.trim() || null,
     })
     .select()
@@ -69,6 +71,7 @@ export async function recordUsage(input: UsageInput) {
     action: "usage_recorded",
     entityType: "usage_logs",
     entityId: usageLog.id,
+    userId: auth.profile.id,
     payload: {
       before: { current_qty: product.current_qty },
       after: { current_qty: newQty },

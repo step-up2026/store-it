@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { getSessionProfile } from "@/lib/auth";
 import { UsageHistoryClient } from "@/components/usage/UsageHistoryClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function UsageHistoryPage() {
   const supabase = await createClient();
+  const profile = await getSessionProfile(supabase);
 
   const [{ data: logs, error }, { data: products }, { data: workers }] =
     await Promise.all([
@@ -21,12 +23,14 @@ export default async function UsageHistoryPage() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold text-neutral-900">Usage Log</h1>
-        <Link
-          href="/usage/new"
-          className="px-4 py-2 rounded-md text-sm font-medium bg-neutral-900 text-white hover:bg-neutral-800"
-        >
-          Record Usage
-        </Link>
+        {profile?.role === "storekeeper" && (
+          <Link
+            href="/usage/new"
+            className="px-4 py-2 rounded-md text-sm font-medium bg-neutral-900 text-white hover:bg-neutral-800"
+          >
+            Record Usage
+          </Link>
+        )}
       </div>
       <UsageHistoryClient
         initialLogs={logs ?? []}

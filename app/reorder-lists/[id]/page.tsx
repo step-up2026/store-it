@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getSessionProfile } from "@/lib/auth";
 import { ReorderDetailClient } from "@/components/reorder/ReorderDetailClient";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +12,7 @@ export default async function ReorderListDetailPage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
+  const profile = await getSessionProfile(supabase);
 
   const [{ data: list, error: listError }, { data: items, error: itemsError }] =
     await Promise.all([
@@ -30,6 +32,7 @@ export default async function ReorderListDetailPage({
         list={list}
         initialItems={items ?? []}
         loadError={itemsError?.message ?? null}
+        role={profile?.role ?? null}
       />
     </div>
   );

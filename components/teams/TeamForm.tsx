@@ -27,7 +27,7 @@ export function TeamForm({
     const res = team ? await updateTeam(team.id, input) : await createTeam(input);
 
     setSaving(false);
-    if (res.error) {
+    if ("error" in res) {
       setError(res.error);
       return;
     }

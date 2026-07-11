@@ -86,3 +86,10 @@ export type AuditLog = {
 };
 
 export type StockStatus = "ok" | "low" | "critical";
+
+export type Profile = {
+  id: string;
+  role: "storekeeper" | "purchasing_officer";
+  full_name: string | null;
+  created_at: string;
+};

@@ -10,9 +10,11 @@ import { deleteSupplier } from "@/lib/actions/suppliers";
 export function SuppliersClient({
   initialSuppliers,
   loadError,
+  canManage,
 }: {
   initialSuppliers: Supplier[];
   loadError: string | null;
+  canManage: boolean;
 }) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
@@ -36,7 +38,7 @@ export function SuppliersClient({
     setError(null);
     const res = await deleteSupplier(s.id);
     setBusyId(null);
-    if (res.error) {
+    if ("error" in res) {
       setError(res.error);
       return;
     }
@@ -47,12 +49,14 @@ export function SuppliersClient({
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold text-neutral-900">Suppliers</h1>
-        <button
-          onClick={openAdd}
-          className="px-4 py-2 rounded-md text-sm font-medium bg-neutral-900 text-white hover:bg-neutral-800"
-        >
-          Add Supplier
-        </button>
+        {canManage && (
+          <button
+            onClick={openAdd}
+            className="px-4 py-2 rounded-md text-sm font-medium bg-neutral-900 text-white hover:bg-neutral-800"
+          >
+            Add Supplier
+          </button>
+        )}
       </div>
 
       {error && (
@@ -67,12 +71,14 @@ export function SuppliersClient({
       {initialSuppliers.length === 0 ? (
         <div className="text-center py-16 border border-dashed border-neutral-300 rounded-lg">
           <p className="text-neutral-500 mb-4">No suppliers yet — add one</p>
-          <button
-            onClick={openAdd}
-            className="px-4 py-2 rounded-md text-sm font-medium bg-neutral-900 text-white hover:bg-neutral-800"
-          >
-            Add Supplier
-          </button>
+          {canManage && (
+            <button
+              onClick={openAdd}
+              className="px-4 py-2 rounded-md text-sm font-medium bg-neutral-900 text-white hover:bg-neutral-800"
+            >
+              Add Supplier
+            </button>
+          )}
         </div>
       ) : (
         <div className="border border-neutral-200 rounded-lg overflow-hidden">
@@ -83,7 +89,9 @@ export function SuppliersClient({
                 <th className="text-left px-4 py-3 font-medium">Contact</th>
                 <th className="text-left px-4 py-3 font-medium">Email</th>
                 <th className="text-left px-4 py-3 font-medium">Phone</th>
-                <th className="text-right px-4 py-3 font-medium">Actions</th>
+                {canManage && (
+                  <th className="text-right px-4 py-3 font-medium">Actions</th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
@@ -101,21 +109,23 @@ export function SuppliersClient({
                   <td className="px-4 py-3 text-neutral-600">
                     {s.contact_phone ?? "—"}
                   </td>
-                  <td className="px-4 py-3 text-right space-x-2">
-                    <button
-                      onClick={() => openEdit(s)}
-                      className="text-neutral-600 hover:text-neutral-900 font-medium"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(s)}
-                      disabled={busyId === s.id}
-                      className="text-red-600 hover:text-red-800 font-medium disabled:opacity-40"
-                    >
-                      {busyId === s.id ? "Deleting…" : "Delete"}
-                    </button>
-                  </td>
+                  {canManage && (
+                    <td className="px-4 py-3 text-right space-x-2">
+                      <button
+                        onClick={() => openEdit(s)}
+                        className="text-neutral-600 hover:text-neutral-900 font-medium"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(s)}
+                        disabled={busyId === s.id}
+                        className="text-red-600 hover:text-red-800 font-medium disabled:opacity-40"
+                      >
+                        {busyId === s.id ? "Deleting…" : "Delete"}
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -123,7 +133,7 @@ export function SuppliersClient({
         </div>
       )}
 
-      {modalOpen && (
+      {modalOpen && canManage && (
         <Modal
           title={editing ? "Edit Supplier" : "Add Supplier"}
           onClose={() => setModalOpen(false)}

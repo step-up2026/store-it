@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { writeAuditLog } from "@/lib/audit";
+import { requireRole } from "@/lib/auth";
 
 export type ProductInput = {
   description: string;
@@ -25,6 +26,9 @@ export async function createProduct(input: ProductInput) {
   if (err) return { error: err };
 
   const supabase = await createClient();
+  const auth = await requireRole(supabase, ["storekeeper"]);
+  if ("error" in auth) return auth;
+
   const { data, error } = await supabase
     .from("products")
     .insert({
@@ -43,6 +47,7 @@ export async function createProduct(input: ProductInput) {
     action: "product_created",
     entityType: "products",
     entityId: data.id,
+    userId: auth.profile.id,
     payload: { after: data },
   });
 
@@ -55,6 +60,9 @@ export async function updateProduct(id: string, input: ProductInput) {
   if (err) return { error: err };
 
   const supabase = await createClient();
+  const auth = await requireRole(supabase, ["storekeeper"]);
+  if ("error" in auth) return auth;
+
   const { data: before } = await supabase
     .from("products")
     .select()
@@ -80,6 +88,7 @@ export async function updateProduct(id: string, input: ProductInput) {
     action: "product_updated",
     entityType: "products",
     entityId: id,
+    userId: auth.profile.id,
     payload: { before, after: data },
   });
 
@@ -89,6 +98,9 @@ export async function updateProduct(id: string, input: ProductInput) {
 
 export async function deleteProduct(id: string) {
   const supabase = await createClient();
+  const auth = await requireRole(supabase, ["storekeeper"]);
+  if ("error" in auth) return auth;
+
   const { data: before } = await supabase
     .from("products")
     .select()
@@ -110,6 +122,7 @@ export async function deleteProduct(id: string) {
     action: "product_deleted",
     entityType: "products",
     entityId: id,
+    userId: auth.profile.id,
     payload: { before },
   });
 

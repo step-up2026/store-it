@@ -39,7 +39,7 @@ export function WorkerForm({
       : await createWorker(input);
 
     setSaving(false);
-    if (res.error) {
+    if ("error" in res) {
       setError(res.error);
       return;
     }

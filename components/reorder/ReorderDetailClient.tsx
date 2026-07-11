@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReorderList } from "@/lib/types";
+import type { Role } from "@/lib/auth";
 import { ReorderListStatusBadge } from "@/components/reorder/ReorderListStatusBadge";
 import {
   markReorderDelivered,
@@ -25,21 +26,22 @@ export function ReorderDetailClient({
   list,
   initialItems,
   loadError,
+  role,
 }: {
   list: ReorderList;
   initialItems: ItemRow[];
   loadError: string | null;
+  role: Role | null;
 }) {
   const router = useRouter();
   const [items, setItems] = useState(initialItems);
   const [error, setError] = useState<string | null>(loadError);
   const [savingId, setSavingId] = useState<string | null>(null);
-  const [actorName, setActorName] = useState(
-    list.status === "draft"
-      ? "Purchasing Officer (Demo)"
-      : "Storekeeper (Demo)",
-  );
   const [busy, setBusy] = useState(false);
+
+  const canEditQty = role === "purchasing_officer" && list.status === "draft";
+  const canMarkOrdered = role === "purchasing_officer" && list.status === "draft";
+  const canMarkDelivered = role === "storekeeper" && list.status === "ordered";
 
   async function handleQtyChange(itemId: string, value: string) {
     const qty = Number(value);
@@ -55,16 +57,16 @@ export function ReorderDetailClient({
     setError(null);
     const res = await updateReorderItemQty(itemId, qty);
     setSavingId(null);
-    if (res.error) setError(res.error);
+    if ("error" in res) setError(res.error);
   }
 
   async function handleMarkOrdered() {
     if (!confirm("Mark this reorder list as Ordered?")) return;
     setBusy(true);
     setError(null);
-    const res = await markReorderOrdered(list.id, actorName);
+    const res = await markReorderOrdered(list.id);
     setBusy(false);
-    if (res.error) {
+    if ("error" in res) {
       setError(res.error);
       return;
     }
@@ -80,9 +82,9 @@ export function ReorderDetailClient({
       return;
     setBusy(true);
     setError(null);
-    const res = await markReorderDelivered(list.id, actorName);
+    const res = await markReorderDelivered(list.id);
     setBusy(false);
-    if (res.error) {
+    if ("error" in res) {
       setError(res.error);
       return;
     }
@@ -106,13 +108,7 @@ export function ReorderDetailClient({
           <ReorderListStatusBadge status={list.status} />
         </div>
         <div className="flex items-center gap-2">
-          <input
-            value={actorName}
-            onChange={(e) => setActorName(e.target.value)}
-            className="rounded-md border border-neutral-300 px-3 py-2 text-sm w-56"
-            placeholder="Your name"
-          />
-          {list.status === "draft" && (
+          {canMarkOrdered && (
             <button
               onClick={handleMarkOrdered}
               disabled={busy}
@@ -121,7 +117,7 @@ export function ReorderDetailClient({
               {busy ? "Saving…" : "Mark as Ordered"}
             </button>
           )}
-          {list.status === "ordered" && (
+          {canMarkDelivered && (
             <button
               onClick={handleMarkDelivered}
               disabled={busy}
@@ -209,7 +205,7 @@ export function ReorderDetailClient({
                   {item.min_stock_level_at_generation}
                 </td>
                 <td className="px-4 py-3 text-right">
-                  {list.status === "draft" ? (
+                  {canEditQty ? (
                     <input
                       type="number"
                       min={0}

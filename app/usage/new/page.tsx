@@ -1,10 +1,17 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getSessionProfile } from "@/lib/auth";
 import { UsageForm } from "@/components/usage/UsageForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewUsagePage() {
   const supabase = await createClient();
+  const profile = await getSessionProfile(supabase);
+
+  if (profile?.role !== "storekeeper") {
+    redirect("/usage");
+  }
 
   const [{ data: products }, { data: workers }] = await Promise.all([
     supabase

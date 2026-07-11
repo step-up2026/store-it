@@ -1,10 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
+import { getSessionProfile } from "@/lib/auth";
 import { SuppliersClient } from "@/components/suppliers/SuppliersClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function SuppliersPage() {
   const supabase = await createClient();
+  const profile = await getSessionProfile(supabase);
   const { data: suppliers, error } = await supabase
     .from("suppliers")
     .select("*")
@@ -14,6 +16,7 @@ export default async function SuppliersPage() {
     <SuppliersClient
       initialSuppliers={suppliers ?? []}
       loadError={error?.message ?? null}
+      canManage={profile?.role === "storekeeper"}
     />
   );
 }

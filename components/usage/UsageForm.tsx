@@ -35,7 +35,6 @@ export function UsageForm({
   const [productId, setProductId] = useState("");
   const [workerId, setWorkerId] = useState("");
   const [qty, setQty] = useState("");
-  const [recordedBy, setRecordedBy] = useState("Storekeeper (Demo)");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -70,12 +69,11 @@ export function UsageForm({
       product_id: productId,
       worker_id: workerId,
       qty_taken: qtyNum,
-      recorded_by: recordedBy,
       notes,
     });
     setSaving(false);
 
-    if (res.error) {
+    if ("error" in res) {
       setError(res.error);
       return;
     }
@@ -162,17 +160,6 @@ export function UsageForm({
           onChange={(e) => setQty(e.target.value)}
           className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
           required
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-neutral-700 mb-1">
-          Recorded By
-        </label>
-        <input
-          value={recordedBy}
-          onChange={(e) => setRecordedBy(e.target.value)}
-          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
         />
       </div>
 
