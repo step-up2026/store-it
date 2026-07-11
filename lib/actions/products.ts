@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { writeAuditLog } from "@/lib/audit";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/permissions";
 
 export type ProductInput = {
   description: string;
@@ -26,7 +26,7 @@ export async function createProduct(input: ProductInput) {
   if (err) return { error: err };
 
   const supabase = await createClient();
-  const auth = await requireRole(supabase, ["storekeeper"]);
+  const auth = await requirePermission(supabase, "products", "add");
   if ("error" in auth) return auth;
 
   const { data, error } = await supabase
@@ -60,7 +60,7 @@ export async function updateProduct(id: string, input: ProductInput) {
   if (err) return { error: err };
 
   const supabase = await createClient();
-  const auth = await requireRole(supabase, ["storekeeper"]);
+  const auth = await requirePermission(supabase, "products", "edit");
   if ("error" in auth) return auth;
 
   const { data: before } = await supabase
@@ -108,7 +108,7 @@ export async function bulkImportProducts(rows: ImportProductInput[]) {
   if (rows.length === 0) return { error: "No rows to import" };
 
   const supabase = await createClient();
-  const auth = await requireRole(supabase, ["storekeeper"]);
+  const auth = await requirePermission(supabase, "products", "add");
   if ("error" in auth) return auth;
 
   for (const row of rows) {
@@ -147,7 +147,7 @@ export async function bulkImportProducts(rows: ImportProductInput[]) {
 
 export async function deleteProduct(id: string) {
   const supabase = await createClient();
-  const auth = await requireRole(supabase, ["storekeeper"]);
+  const auth = await requirePermission(supabase, "products", "delete");
   if ("error" in auth) return auth;
 
   const { data: before } = await supabase

@@ -39,9 +39,13 @@ export function ReorderDetailClient({
   const [savingId, setSavingId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const canEditQty = role === "purchasing_officer" && list.status === "draft";
-  const canMarkOrdered = role === "purchasing_officer" && list.status === "draft";
-  const canMarkDelivered = role === "storekeeper" && list.status === "ordered";
+  const isAdmin = role === "admin";
+  const canEditQty =
+    (role === "purchasing_officer" || isAdmin) && list.status === "draft";
+  const canMarkOrdered =
+    (role === "purchasing_officer" || isAdmin) && list.status === "draft";
+  const canMarkDelivered =
+    (role === "storekeeper" || isAdmin) && list.status === "ordered";
 
   async function handleQtyChange(itemId: string, value: string) {
     const qty = Number(value);
@@ -112,7 +116,7 @@ export function ReorderDetailClient({
             <button
               onClick={handleMarkOrdered}
               disabled={busy}
-              className="no-print px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+              className="no-print px-4 py-2 rounded-md text-sm font-medium bg-steel text-white hover:bg-ink disabled:opacity-50"
             >
               {busy ? "Saving…" : "Mark as Ordered"}
             </button>

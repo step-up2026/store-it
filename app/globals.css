@@ -1,8 +1,29 @@
 @import "tailwindcss";
 
+/* Store-It industrial palette — 5 core colors:
+   1. ink      #0F1B2D  deep industrial navy (sidebar, strong text, dark surfaces)
+   2. safety   #F59E0B  safety amber (accent, active nav, highlights)
+   3. steel    #2563EB  steel blue (informational actions, e.g. Mark as Ordered)
+   4. graphite #3F4A5A  graphite gray (primary buttons, headings)
+   5. mist     #EEF1F4  light steel gray (page background)
+   Semantic green (delivered/success) and red (critical/danger) stay for status only. */
+@theme {
+  --color-ink: #0f1b2d;
+  --color-safety: #f59e0b;
+  --color-steel: #2563eb;
+  --color-graphite: #3f4a5a;
+  --color-mist: #eef1f4;
+}
+
 @media print {
   nav,
+  aside,
   .no-print {
     display: none !important;
+  }
+  /* remove the sidebar/rail content offset when the nav is hidden */
+  .pl-14,
+  .md\:pl-60 {
+    padding-left: 0 !important;
   }
 }

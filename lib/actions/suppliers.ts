@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { writeAuditLog } from "@/lib/audit";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/permissions";
 
 export type SupplierInput = {
   name: string;
@@ -16,7 +16,7 @@ export async function createSupplier(input: SupplierInput) {
   if (!input.name.trim()) return { error: "Supplier name is required" };
 
   const supabase = await createClient();
-  const auth = await requireRole(supabase, ["storekeeper"]);
+  const auth = await requirePermission(supabase, "suppliers", "add");
   if ("error" in auth) return auth;
 
   const { data, error } = await supabase
@@ -49,7 +49,7 @@ export async function updateSupplier(id: string, input: SupplierInput) {
   if (!input.name.trim()) return { error: "Supplier name is required" };
 
   const supabase = await createClient();
-  const auth = await requireRole(supabase, ["storekeeper"]);
+  const auth = await requirePermission(supabase, "suppliers", "edit");
   if ("error" in auth) return auth;
 
   const { data: before } = await supabase
@@ -87,7 +87,7 @@ export async function updateSupplier(id: string, input: SupplierInput) {
 
 export async function deleteSupplier(id: string) {
   const supabase = await createClient();
-  const auth = await requireRole(supabase, ["storekeeper"]);
+  const auth = await requirePermission(supabase, "suppliers", "delete");
   if ("error" in auth) return auth;
 
   const { data: before } = await supabase

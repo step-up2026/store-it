@@ -147,7 +147,7 @@ export function ImportClient({
             <button
               onClick={handleConfirm}
               disabled={validRows.length === 0 || importing}
-              className="px-4 py-2 rounded-md text-sm font-medium bg-neutral-900 text-white hover:bg-neutral-800 disabled:opacity-50"
+              className="px-4 py-2 rounded-md text-sm font-medium bg-graphite text-white hover:bg-ink disabled:opacity-50"
             >
               {importing ? "Importing…" : `Confirm Import (${validRows.length})`}
             </button>

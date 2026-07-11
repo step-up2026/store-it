@@ -19,9 +19,9 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className="antialiased bg-neutral-50 min-h-screen">
+      <body className="antialiased bg-mist min-h-screen">
         <Navbar profile={profile} />
-        <div className={profile ? "md:pl-60" : undefined}>{children}</div>
+        <div className={profile ? "pl-14 md:pl-60" : undefined}>{children}</div>
       </body>
     </html>
   );

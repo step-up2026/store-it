@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
+import type { ResourcePerms } from "@/lib/permissions";
 import { computeStockStatus } from "@/lib/stock";
 import { StockBadge } from "@/components/StockBadge";
 import { Modal } from "@/components/Modal";
@@ -17,12 +18,14 @@ export function ProductsClient({
   initialProducts,
   suppliers,
   loadError,
-  canManage,
+  perms,
+  canGenerate,
 }: {
   initialProducts: Product[];
   suppliers: SupplierOption[];
   loadError: string | null;
-  canManage: boolean;
+  perms: ResourcePerms;
+  canGenerate: boolean;
 }) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
@@ -81,8 +84,8 @@ export function ProductsClient({
     <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
         <h1 className="text-2xl font-semibold text-neutral-900">Products</h1>
-        {canManage && (
-          <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2">
+          {canGenerate && (
             <button
               onClick={handleGenerateReorder}
               disabled={!hasLowStock || isPending}
@@ -95,20 +98,24 @@ export function ProductsClient({
             >
               {isPending ? "Generating…" : "Generate Reorder List"}
             </button>
-            <Link
-              href="/products/import"
-              className="px-4 py-2 rounded-md text-sm font-medium border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
-            >
-              Import
-            </Link>
-            <button
-              onClick={openAdd}
-              className="px-4 py-2 rounded-md text-sm font-medium bg-neutral-900 text-white hover:bg-neutral-800"
-            >
-              Add Product
-            </button>
-          </div>
-        )}
+          )}
+          {perms.add && (
+            <>
+              <Link
+                href="/products/import"
+                className="px-4 py-2 rounded-md text-sm font-medium border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+              >
+                Import
+              </Link>
+              <button
+                onClick={openAdd}
+                className="px-4 py-2 rounded-md text-sm font-medium bg-graphite text-white hover:bg-ink"
+              >
+                Add Product
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {error && (
@@ -125,10 +132,10 @@ export function ProductsClient({
           <p className="text-neutral-500 mb-4">
             No consumable products yet — add one or import from Excel
           </p>
-          {canManage && (
+          {perms.add && (
             <button
               onClick={openAdd}
-              className="px-4 py-2 rounded-md text-sm font-medium bg-neutral-900 text-white hover:bg-neutral-800"
+              className="px-4 py-2 rounded-md text-sm font-medium bg-graphite text-white hover:bg-ink"
             >
               Add Product
             </button>
@@ -145,7 +152,7 @@ export function ProductsClient({
                 <th className="text-right px-4 py-3 font-medium">Min Stock</th>
                 <th className="text-left px-4 py-3 font-medium">Status</th>
                 <th className="text-left px-4 py-3 font-medium">Supplier</th>
-                {canManage && (
+                {(perms.edit || perms.delete) && (
                   <th className="text-right px-4 py-3 font-medium">Actions</th>
                 )}
               </tr>
@@ -172,21 +179,25 @@ export function ProductsClient({
                   <td className="px-4 py-3 text-neutral-600">
                     {p.supplier?.name ?? "—"}
                   </td>
-                  {canManage && (
+                  {(perms.edit || perms.delete) && (
                     <td className="px-4 py-3 text-right space-x-2">
-                      <button
-                        onClick={() => openEdit(p)}
-                        className="text-neutral-600 hover:text-neutral-900 font-medium"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(p)}
-                        disabled={busyId === p.id}
-                        className="text-red-600 hover:text-red-800 font-medium disabled:opacity-40"
-                      >
-                        {busyId === p.id ? "Deleting…" : "Delete"}
-                      </button>
+                      {perms.edit && (
+                        <button
+                          onClick={() => openEdit(p)}
+                          className="text-neutral-600 hover:text-neutral-900 font-medium"
+                        >
+                          Edit
+                        </button>
+                      )}
+                      {perms.delete && (
+                        <button
+                          onClick={() => handleDelete(p)}
+                          disabled={busyId === p.id}
+                          className="text-red-600 hover:text-red-800 font-medium disabled:opacity-40"
+                        >
+                          {busyId === p.id ? "Deleting…" : "Delete"}
+                        </button>
+                      )}
                     </td>
                   )}
                 </tr>
@@ -196,7 +207,7 @@ export function ProductsClient({
         </div>
       )}
 
-      {modalOpen && canManage && (
+      {modalOpen && (editing ? perms.edit : perms.add) && (
         <Modal
           title={editing ? "Edit Product" : "Add Product"}
           onClose={() => setModalOpen(false)}

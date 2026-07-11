@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { SessionProfile } from "@/lib/auth";
 import { signOut } from "@/lib/actions/auth";
 
-const LINKS = [
+type NavLink = { href: string; label: string; icon: React.ReactNode; adminOnly?: boolean };
+
+const LINKS: NavLink[] = [
   {
     href: "/products",
     label: "Products",
@@ -62,9 +63,25 @@ const LINKS = [
       />
     ),
   },
+  {
+    href: "/admin",
+    label: "User Management",
+    adminOnly: true,
+    icon: (
+      <>
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+        />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </>
+    ),
+  },
 ];
 
 const ROLE_LABEL: Record<SessionProfile["role"], string> = {
+  admin: "Administrator",
   storekeeper: "Storekeeper",
   purchasing_officer: "Purchasing Officer",
 };
@@ -83,153 +100,107 @@ function NavIcon({ children }: { children: React.ReactNode }) {
   );
 }
 
-function NavLinks({
-  pathname,
-  onNavigate,
-}: {
-  pathname: string | null;
-  onNavigate?: () => void;
-}) {
-  return (
-    <div className="flex flex-col gap-1">
-      {LINKS.map((link) => {
-        const active =
-          pathname === link.href || pathname?.startsWith(link.href + "/");
-        return (
-          <Link
-            key={link.href}
-            href={link.href}
-            onClick={onNavigate}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-              active
-                ? "bg-amber-500 text-slate-900"
-                : "text-slate-300 hover:bg-slate-800 hover:text-white"
-            }`}
-          >
-            <NavIcon>{link.icon}</NavIcon>
-            {link.label}
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
-
-function UserPanel({
-  profile,
-  onLogout,
-}: {
-  profile: SessionProfile;
-  onLogout: () => void;
-}) {
-  return (
-    <div className="border-t border-slate-800 pt-4 mt-4">
-      <p className="text-sm text-white font-medium truncate">
-        {profile.full_name || profile.email}
-      </p>
-      <p className="text-xs text-slate-400 mb-3">{ROLE_LABEL[profile.role]}</p>
-      <button
-        onClick={onLogout}
-        className="w-full text-left px-3 py-2 rounded-md text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
-      >
-        Logout
-      </button>
-    </div>
-  );
-}
-
 export function Navbar({ profile }: { profile: SessionProfile | null }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   async function handleLogout() {
-    setMobileOpen(false);
     await signOut();
     router.push("/login");
     router.refresh();
   }
 
-  if (!profile) {
-    return (
-      <div className="md:hidden sticky top-0 z-20 bg-slate-900 h-14 flex items-center px-4">
-        <span className="font-semibold tracking-tight text-white">
-          Store-It
-        </span>
-      </div>
-    );
-  }
+  if (!profile) return null;
+
+  const links = LINKS.filter((l) => !l.adminOnly || profile.role === "admin");
 
   return (
     <>
-      {/* Mobile top bar */}
-      <div className="md:hidden sticky top-0 z-20 bg-slate-900 h-14 flex items-center gap-3 px-4">
-        <button
-          onClick={() => setMobileOpen(true)}
-          aria-label="Open menu"
-          className="text-white p-1 -ml-1"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            className="w-6 h-6"
-          >
-            <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-        <span className="font-semibold tracking-tight text-white">
-          Store-It
+      {/* Mobile: narrow icon-only rail; pressing an icon shows its label above it */}
+      <aside className="md:hidden fixed inset-y-0 left-0 z-20 w-14 bg-ink flex flex-col items-center py-4 gap-1">
+        <span className="w-9 h-9 rounded-md bg-safety text-ink font-bold text-lg flex items-center justify-center mb-3">
+          S
         </span>
-      </div>
-
-      {/* Mobile drawer */}
-      {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-30">
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setMobileOpen(false)}
-          />
-          <div className="absolute inset-y-0 left-0 w-72 max-w-[80vw] bg-slate-900 flex flex-col p-4">
-            <div className="flex items-center justify-between mb-6">
-              <span className="font-semibold tracking-tight text-white">
-                Store-It
+        {links.map((link) => {
+          const active =
+            pathname === link.href || pathname?.startsWith(link.href + "/");
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              aria-label={link.label}
+              className={`group relative flex items-center justify-center w-10 h-10 rounded-md transition-colors ${
+                active
+                  ? "bg-safety text-ink"
+                  : "text-slate-300 hover:bg-slate-800 hover:text-white active:bg-slate-800"
+              }`}
+            >
+              <NavIcon>{link.icon}</NavIcon>
+              <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 whitespace-nowrap rounded bg-ink text-white text-xs px-2 py-1 shadow-lg border border-slate-700 opacity-0 group-hover:opacity-100 group-active:opacity-100 group-focus-visible:opacity-100 transition-opacity z-50">
+                {link.label}
               </span>
-              <button
-                onClick={() => setMobileOpen(false)}
-                aria-label="Close menu"
-                className="text-slate-400 hover:text-white p-1"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  className="w-6 h-6"
-                >
-                  <path strokeLinecap="round" d="M6 6l12 12M18 6L6 18" />
-                </svg>
-              </button>
-            </div>
-            <NavLinks
-              pathname={pathname}
-              onNavigate={() => setMobileOpen(false)}
+            </Link>
+          );
+        })}
+        <div className="flex-1" />
+        <button
+          onClick={handleLogout}
+          aria-label="Logout"
+          className="group relative flex items-center justify-center w-10 h-10 rounded-md text-slate-300 hover:bg-slate-800 hover:text-white active:bg-slate-800"
+        >
+          <NavIcon>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
             />
-            <div className="flex-1" />
-            <UserPanel profile={profile} onLogout={handleLogout} />
-          </div>
-        </div>
-      )}
+          </NavIcon>
+          <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 whitespace-nowrap rounded bg-ink text-white text-xs px-2 py-1 shadow-lg border border-slate-700 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity z-50">
+            Logout
+          </span>
+        </button>
+      </aside>
 
-      {/* Desktop sidebar */}
-      <aside className="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:w-60 bg-slate-900 px-4 py-5">
+      {/* Desktop: full labeled sidebar */}
+      <aside className="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:w-60 bg-ink px-4 py-5">
         <span className="font-semibold tracking-tight text-white text-lg px-3 mb-6">
           Store-It
         </span>
-        <NavLinks pathname={pathname} />
+        <div className="flex flex-col gap-1">
+          {links.map((link) => {
+            const active =
+              pathname === link.href || pathname?.startsWith(link.href + "/");
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
+                  active
+                    ? "bg-safety text-ink"
+                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                }`}
+              >
+                <NavIcon>{link.icon}</NavIcon>
+                {link.label}
+              </Link>
+            );
+          })}
+        </div>
         <div className="flex-1" />
-        <UserPanel profile={profile} onLogout={handleLogout} />
+        <div className="border-t border-slate-800 pt-4 mt-4">
+          <p className="text-sm text-white font-medium truncate">
+            {profile.full_name || profile.email}
+          </p>
+          <p className="text-xs text-slate-400 mb-3">
+            {ROLE_LABEL[profile.role]}
+          </p>
+          <button
+            onClick={handleLogout}
+            className="w-full text-left px-3 py-2 rounded-md text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+          >
+            Logout
+          </button>
+        </div>
       </aside>
     </>
   );

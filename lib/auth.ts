@@ -1,12 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type Role = "storekeeper" | "purchasing_officer";
+export type Role = "admin" | "storekeeper" | "purchasing_officer";
 
 export type SessionProfile = {
   id: string;
   email: string | null;
   role: Role;
   full_name: string | null;
+  department_id: string | null;
 };
 
 export async function getSessionProfile(
@@ -19,7 +20,7 @@ export async function getSessionProfile(
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, full_name")
+    .select("role, full_name, department_id")
     .eq("id", user.id)
     .single();
 
@@ -30,16 +31,18 @@ export async function getSessionProfile(
     email: user.email ?? null,
     role: profile.role as Role,
     full_name: profile.full_name,
+    department_id: profile.department_id,
   };
 }
 
+// Admins pass every role check.
 export async function requireRole(
   supabase: SupabaseClient,
   allowed: Role[],
 ): Promise<{ profile: SessionProfile } | { error: string }> {
   const profile = await getSessionProfile(supabase);
   if (!profile) return { error: "Not authenticated" };
-  if (!allowed.includes(profile.role)) {
+  if (profile.role !== "admin" && !allowed.includes(profile.role)) {
     return {
       error: `Forbidden — this action requires the ${allowed.join(" or ")} role`,
     };

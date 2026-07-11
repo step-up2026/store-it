@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { writeAuditLog } from "@/lib/audit";
-import { requireRole } from "@/lib/auth";
+import { requirePermission } from "@/lib/permissions";
 
 export type TeamInput = { name: string; leader_name: string };
 export type WorkerInput = {
@@ -16,7 +16,7 @@ export async function createTeam(input: TeamInput) {
   if (!input.name.trim()) return { error: "Team name is required" };
 
   const supabase = await createClient();
-  const auth = await requireRole(supabase, ["storekeeper"]);
+  const auth = await requirePermission(supabase, "teams", "add");
   if ("error" in auth) return auth;
 
   const { data, error } = await supabase
@@ -46,7 +46,7 @@ export async function updateTeam(id: string, input: TeamInput) {
   if (!input.name.trim()) return { error: "Team name is required" };
 
   const supabase = await createClient();
-  const auth = await requireRole(supabase, ["storekeeper"]);
+  const auth = await requirePermission(supabase, "teams", "edit");
   if ("error" in auth) return auth;
 
   const { data: before } = await supabase
@@ -81,7 +81,7 @@ export async function updateTeam(id: string, input: TeamInput) {
 
 export async function deleteTeam(id: string) {
   const supabase = await createClient();
-  const auth = await requireRole(supabase, ["storekeeper"]);
+  const auth = await requirePermission(supabase, "teams", "delete");
   if ("error" in auth) return auth;
 
   const { data: before } = await supabase
@@ -109,7 +109,7 @@ export async function createWorker(input: WorkerInput) {
   if (!input.name.trim()) return { error: "Worker name is required" };
 
   const supabase = await createClient();
-  const auth = await requireRole(supabase, ["storekeeper"]);
+  const auth = await requirePermission(supabase, "teams", "add");
   if ("error" in auth) return auth;
 
   const { data, error } = await supabase
@@ -140,7 +140,7 @@ export async function updateWorker(id: string, input: WorkerInput) {
   if (!input.name.trim()) return { error: "Worker name is required" };
 
   const supabase = await createClient();
-  const auth = await requireRole(supabase, ["storekeeper"]);
+  const auth = await requirePermission(supabase, "teams", "edit");
   if ("error" in auth) return auth;
 
   const { data: before } = await supabase
@@ -176,7 +176,7 @@ export async function updateWorker(id: string, input: WorkerInput) {
 
 export async function deleteWorker(id: string) {
   const supabase = await createClient();
-  const auth = await requireRole(supabase, ["storekeeper"]);
+  const auth = await requirePermission(supabase, "teams", "delete");
   if ("error" in auth) return auth;
 
   const { data: before } = await supabase

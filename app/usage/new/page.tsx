@@ -9,7 +9,7 @@ export default async function NewUsagePage() {
   const supabase = await createClient();
   const profile = await getSessionProfile(supabase);
 
-  if (profile?.role !== "storekeeper") {
+  if (profile?.role !== "storekeeper" && profile?.role !== "admin") {
     redirect("/usage");
   }
 
