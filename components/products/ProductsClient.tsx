@@ -78,11 +78,11 @@ export function ProductsClient({
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
         <h1 className="text-2xl font-semibold text-neutral-900">Products</h1>
         {canManage && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={handleGenerateReorder}
               disabled={!hasLowStock || isPending}
@@ -135,7 +135,7 @@ export function ProductsClient({
           )}
         </div>
       ) : (
-        <div className="border border-neutral-200 rounded-lg overflow-hidden">
+        <div className="border border-neutral-200 rounded-lg overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-neutral-50 text-neutral-500 text-xs uppercase tracking-wide">
               <tr>

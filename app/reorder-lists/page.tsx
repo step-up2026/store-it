@@ -12,8 +12,8 @@ export default async function ReorderListsPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
         <h1 className="text-2xl font-semibold text-neutral-900">
           Reorder Lists
         </h1>
@@ -38,7 +38,7 @@ export default async function ReorderListsPage() {
           </p>
         </div>
       ) : (
-        <div className="border border-neutral-200 rounded-lg overflow-hidden">
+        <div className="border border-neutral-200 rounded-lg overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-neutral-50 text-neutral-500 text-xs uppercase tracking-wide">
               <tr>

@@ -61,8 +61,8 @@ export function TeamsClient({
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
         <h1 className="text-2xl font-semibold text-neutral-900">Teams</h1>
         {canManage && (
           <button
@@ -112,7 +112,7 @@ export function TeamsClient({
                 key={team.id}
                 className="border border-neutral-200 rounded-lg overflow-hidden"
               >
-                <div className="flex items-center justify-between px-4 py-3 bg-neutral-50">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-4 py-3 bg-neutral-50">
                   <div>
                     <span className="font-semibold text-neutral-900">
                       {team.name}
@@ -124,7 +124,7 @@ export function TeamsClient({
                     )}
                   </div>
                   {canManage && (
-                    <div className="space-x-3 text-sm">
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
                       <button
                         onClick={() =>
                           setWorkerModal({ teamId: team.id, worker: null })

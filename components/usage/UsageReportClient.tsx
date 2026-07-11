@@ -96,7 +96,7 @@ export function UsageReportClient({
           {productTotals.length === 0 ? (
             <p className="text-sm text-neutral-400">No usage in this range</p>
           ) : (
-            <div className="border border-neutral-200 rounded-lg overflow-hidden">
+            <div className="border border-neutral-200 rounded-lg overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-neutral-50 text-neutral-500 text-xs uppercase tracking-wide">
                   <tr>
@@ -126,7 +126,7 @@ export function UsageReportClient({
           {workerTotals.length === 0 ? (
             <p className="text-sm text-neutral-400">No usage in this range</p>
           ) : (
-            <div className="border border-neutral-200 rounded-lg overflow-hidden">
+            <div className="border border-neutral-200 rounded-lg overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-neutral-50 text-neutral-500 text-xs uppercase tracking-wide">
                   <tr>

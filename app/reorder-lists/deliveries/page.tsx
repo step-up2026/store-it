@@ -79,7 +79,7 @@ export default async function DeliveriesSummaryPage() {
             <h2 className="text-sm font-semibold text-neutral-700 mb-2">
               Confirmed Deliveries
             </h2>
-            <div className="border border-neutral-200 rounded-lg overflow-hidden">
+            <div className="border border-neutral-200 rounded-lg overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-neutral-50 text-neutral-500 text-xs uppercase tracking-wide">
                   <tr>
@@ -126,7 +126,7 @@ export default async function DeliveriesSummaryPage() {
             <h2 className="text-sm font-semibold text-neutral-700 mb-2">
               Total Delivered by Product
             </h2>
-            <div className="border border-neutral-200 rounded-lg overflow-hidden">
+            <div className="border border-neutral-200 rounded-lg overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-neutral-50 text-neutral-500 text-xs uppercase tracking-wide">
                   <tr>
