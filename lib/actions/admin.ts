@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { writeAuditLog } from "@/lib/audit";
 import { requireAdmin, RESOURCES, type Resource } from "@/lib/permissions";
 import type { Role } from "@/lib/auth";
@@ -99,6 +100,66 @@ export async function updateUserProfile(
 
   await writeAuditLog(supabase, {
     action: "user_profile_updated",
+    entityType: "profiles",
+    entityId: userId,
+    userId: auth.profile.id,
+    payload: { before, after: data },
+  });
+
+  revalidatePath("/admin");
+  return { data };
+}
+
+// Admin edit of a user's identity (name + sign-in email). The email lives in
+// auth.users, which only the service-role key may modify, so the change goes
+// through the admin API and is then mirrored onto the profiles row the app reads.
+export async function updateUserAccount(
+  userId: string,
+  input: { full_name: string; email: string },
+) {
+  const supabase = await createClient();
+  const auth = await requireAdmin(supabase);
+  if ("error" in auth) return auth;
+
+  const fullName = input.full_name.trim();
+  const email = input.email.trim().toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { error: "A valid email address is required" };
+  }
+
+  const { data: before } = await supabase
+    .from("profiles")
+    .select()
+    .eq("id", userId)
+    .single();
+  if (!before) return { error: "User not found" };
+
+  if (email !== (before.email ?? "").toLowerCase()) {
+    const adminClient = createAdminClient();
+    if (!adminClient) {
+      return {
+        error:
+          "Changing a user's email requires SUPABASE_SERVICE_ROLE_KEY to be set in the server environment",
+      };
+    }
+    const { error } = await adminClient.auth.admin.updateUserById(userId, {
+      email,
+      email_confirm: true,
+    });
+    if (error) return { error: error.message };
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .update({ full_name: fullName || null, email })
+    .eq("id", userId)
+    .select()
+    .single();
+
+  if (error) return { error: error.message };
+
+  await writeAuditLog(supabase, {
+    action: "user_account_updated",
     entityType: "profiles",
     entityId: userId,
     userId: auth.profile.id,

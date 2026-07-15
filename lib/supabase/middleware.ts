@@ -1,7 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/api"];
+const PUBLIC_PATHS = ["/login", "/register", "/forgot-password", "/auth", "/api"];
+
+// Signed-in users get bounced off these straight into the app.
+// (/reset-password is intentionally NOT public: recovery links land there
+// already holding a session from /auth/callback.)
+const SIGNED_OUT_ONLY = ["/login", "/register"];
 
 export async function updateSession(request: NextRequest) {
   const supabaseResponse = NextResponse.next({ request });
@@ -49,7 +54,7 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    if (user && pathname === "/login") {
+    if (user && SIGNED_OUT_ONLY.includes(pathname)) {
       const productsUrl = new URL("/products", request.url);
       return NextResponse.redirect(productsUrl);
     }

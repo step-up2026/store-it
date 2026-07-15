@@ -4,10 +4,12 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Role } from "@/lib/auth";
 import { RESOURCES, type Resource } from "@/lib/permissions";
+import { Modal } from "@/components/Modal";
 import {
   createDepartment,
   deleteDepartment,
   setPermission,
+  updateUserAccount,
   updateUserProfile,
   type PermissionFlags,
 } from "@/lib/actions/admin";
@@ -77,6 +79,17 @@ export function AdminClient({
 
   // Departments
   const [newDeptName, setNewDeptName] = useState("");
+
+  // Edit user (name + email) modal
+  const [editingUser, setEditingUser] = useState<UserRow | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+
+  function openEditUser(u: UserRow) {
+    setEditingUser(u);
+    setEditName(u.full_name ?? "");
+    setEditEmail(u.email ?? "");
+  }
 
   // Permissions editor
   const [subjectType, setSubjectType] = useState<"user" | "department">("user");
@@ -199,6 +212,7 @@ export function AdminClient({
                 <th className="text-left px-4 py-3 font-medium">User</th>
                 <th className="text-left px-4 py-3 font-medium">Role</th>
                 <th className="text-left px-4 py-3 font-medium">Department</th>
+                <th className="px-4 py-3" aria-label="Actions" />
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
@@ -260,12 +274,85 @@ export function AdminClient({
                       ))}
                     </select>
                   </td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      disabled={busy}
+                      onClick={() => openEditUser(u)}
+                      className="px-3 py-1.5 rounded-md text-sm font-medium border border-neutral-300 text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
+                    >
+                      Edit
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </section>
+
+      {editingUser && (
+        <Modal title="Edit user" onClose={() => setEditingUser(null)}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              run(
+                () =>
+                  updateUserAccount(editingUser.id, {
+                    full_name: editName,
+                    email: editEmail,
+                  }),
+                "User updated.",
+              ).then((ok) => ok && setEditingUser(null));
+            }}
+            className="space-y-4"
+          >
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">
+                Full name
+              </label>
+              <input
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                autoFocus
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                value={editEmail}
+                onChange={(e) => setEditEmail(e.target.value)}
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                required
+              />
+              <p className="text-xs text-neutral-400 mt-1">
+                Changing the email updates what this user signs in with, effective
+                immediately.
+              </p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setEditingUser(null)}
+                className="px-4 py-2 rounded-md text-sm font-medium border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={busy}
+                className="px-4 py-2 rounded-md text-sm font-medium bg-graphite text-white hover:bg-ink disabled:opacity-50"
+              >
+                {busy ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
 
       {/* Departments */}
       <section>

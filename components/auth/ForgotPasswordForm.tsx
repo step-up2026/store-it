@@ -2,31 +2,45 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { signIn } from "@/lib/actions/auth";
+import { requestPasswordReset } from "@/lib/actions/auth";
 
-export function LoginForm() {
-  const router = useRouter();
+export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [sent, setSent] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     setError(null);
 
-    const res = await signIn(email, password);
+    const res = await requestPasswordReset(email);
+    setSaving(false);
 
-    if (res.error) {
-      setSaving(false);
+    if ("error" in res && res.error) {
       setError(res.error);
       return;
     }
+    setSent(true);
+  }
 
-    router.push("/products");
-    router.refresh();
+  if (sent) {
+    return (
+      <div className="space-y-4 bg-white border border-neutral-200 rounded-lg p-6 text-center">
+        <div className="rounded-md border border-green-300 bg-green-50 text-green-800 px-3 py-3 text-sm">
+          If an account exists for{" "}
+          <span className="font-medium">{email.trim()}</span>, a password reset
+          link is on its way. Check your inbox (and spam folder).
+        </div>
+        <Link
+          href="/login"
+          className="inline-block text-sm font-medium text-neutral-700 underline"
+        >
+          Back to sign in
+        </Link>
+      </div>
+    );
   }
 
   return (
@@ -52,37 +66,17 @@ export function LoginForm() {
           autoFocus
         />
       </div>
-      <div>
-        <div className="flex items-center justify-between mb-1">
-          <label className="block text-sm font-medium text-neutral-700">
-            Password
-          </label>
-          <Link
-            href="/forgot-password"
-            className="text-xs text-neutral-500 underline hover:text-neutral-700"
-          >
-            Forgot password?
-          </Link>
-        </div>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
-          required
-        />
-      </div>
       <button
         type="submit"
         disabled={saving}
         className="w-full px-4 py-2 rounded-md text-sm font-medium bg-graphite text-white hover:bg-ink disabled:opacity-50"
       >
-        {saving ? "Signing in…" : "Sign In"}
+        {saving ? "Sending…" : "Send Reset Link"}
       </button>
       <p className="text-sm text-neutral-500 text-center">
-        New here?{" "}
-        <Link href="/register" className="font-medium text-neutral-700 underline">
-          Create an account
+        Remembered it?{" "}
+        <Link href="/login" className="font-medium text-neutral-700 underline">
+          Sign in
         </Link>
       </p>
     </form>

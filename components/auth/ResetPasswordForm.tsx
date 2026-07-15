@@ -1,25 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signIn } from "@/lib/actions/auth";
+import { updatePassword } from "@/lib/actions/auth";
 
-export function LoginForm() {
+export function ResetPasswordForm() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSaving(true);
     setError(null);
 
-    const res = await signIn(email, password);
+    if (password !== confirm) {
+      setError("Passwords do not match");
+      return;
+    }
 
-    if (res.error) {
+    setSaving(true);
+    const res = await updatePassword(password);
+
+    if ("error" in res && res.error) {
       setSaving(false);
       setError(res.error);
       return;
@@ -41,34 +45,29 @@ export function LoginForm() {
       )}
       <div>
         <label className="block text-sm font-medium text-neutral-700 mb-1">
-          Email
+          New password
         </label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
-          required
-          autoFocus
-        />
-      </div>
-      <div>
-        <div className="flex items-center justify-between mb-1">
-          <label className="block text-sm font-medium text-neutral-700">
-            Password
-          </label>
-          <Link
-            href="/forgot-password"
-            className="text-xs text-neutral-500 underline hover:text-neutral-700"
-          >
-            Forgot password?
-          </Link>
-        </div>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          minLength={8}
+          required
+          autoFocus
+        />
+        <p className="text-xs text-neutral-400 mt-1">At least 8 characters</p>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-neutral-700 mb-1">
+          Confirm new password
+        </label>
+        <input
+          type="password"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          minLength={8}
           required
         />
       </div>
@@ -77,14 +76,8 @@ export function LoginForm() {
         disabled={saving}
         className="w-full px-4 py-2 rounded-md text-sm font-medium bg-graphite text-white hover:bg-ink disabled:opacity-50"
       >
-        {saving ? "Signing in…" : "Sign In"}
+        {saving ? "Saving…" : "Set New Password"}
       </button>
-      <p className="text-sm text-neutral-500 text-center">
-        New here?{" "}
-        <Link href="/register" className="font-medium text-neutral-700 underline">
-          Create an account
-        </Link>
-      </p>
     </form>
   );
 }
